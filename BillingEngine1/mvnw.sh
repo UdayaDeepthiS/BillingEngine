@@ -3,7 +3,7 @@
 set -e
 
 # Determine the directory containing this script
-SCRIPT_DIR="C:\Users\udaya\Test\BillingEngine1"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 WRAPPER_JAR="$SCRIPT_DIR/.mvn/wrapper/maven-wrapper.jar"
 WRAPPER_PROPERTIES="$SCRIPT_DIR/.mvn/wrapper/maven-wrapper.properties"
 
