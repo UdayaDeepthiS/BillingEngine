@@ -1,0 +1,132 @@
+### Billing Engine – HTTP Requests
+### Works with: IntelliJ HTTP Client  |  VS Code REST Client (humao.rest-client)
+
+@baseUrl = http://localhost:8080/api/v1/billing
+
+# ═══════════════════════════════════════════════════════════════════
+# 1. PREMIUM SCHEDULE
+# ═══════════════════════════════════════════════════════════════════
+
+### Quarterly policy – 4 instalments
+GET {{baseUrl}}/policies/POL-1001/premium-schedule
+Accept: application/json
+
+###
+
+### Monthly policy – 12 instalments
+GET {{baseUrl}}/policies/POL-1002/premium-schedule
+Accept: application/json
+
+###
+
+### Biannual policy – 2 instalments
+GET {{baseUrl}}/policies/POL-1003/premium-schedule
+Accept: application/json
+
+###
+
+### Unknown policy → 404
+GET {{baseUrl}}/policies/POL-UNKNOWN/premium-schedule
+Accept: application/json
+
+###
+
+# ═══════════════════════════════════════════════════════════════════
+# 2. RECORD PAYMENT ATTEMPT
+# ═══════════════════════════════════════════════════════════════════
+
+### Successful payment (token does NOT end in 'fail')
+POST {{baseUrl}}/payments/attempts
+Content-Type: application/json
+
+{
+  "policyId":           "POL-1001",
+  "amount":             320.00,
+  "paymentMethodToken": "tok_visa_4242",
+  "idempotencyKey":     "idem-001"
+}
+
+###
+
+### Failed payment (token ends in 'fail')
+POST {{baseUrl}}/payments/attempts
+Content-Type: application/json
+
+{
+  "policyId":           "POL-1002",
+  "amount":             145.50,
+  "paymentMethodToken": "tok_card_fail",
+  "idempotencyKey":     "idem-002"
+}
+
+###
+
+### Validation error – blank policyId → 400
+POST {{baseUrl}}/payments/attempts
+Content-Type: application/json
+
+{
+  "policyId":           "",
+  "amount":             320.00,
+  "paymentMethodToken": "tok_test"
+}
+
+###
+
+### Validation error – zero amount → 400
+POST {{baseUrl}}/payments/attempts
+Content-Type: application/json
+
+{
+  "policyId":           "POL-1001",
+  "amount":             0,
+  "paymentMethodToken": "tok_test"
+}
+
+###
+
+### Unknown policy → 404
+POST {{baseUrl}}/payments/attempts
+Content-Type: application/json
+
+{
+  "policyId":           "POL-9999",
+  "amount":             100.00,
+  "paymentMethodToken": "tok_visa"
+}
+
+###
+
+# ═══════════════════════════════════════════════════════════════════
+# 3. DELINQUENT POLICIES
+# ═══════════════════════════════════════════════════════════════════
+
+### List all delinquent policies
+GET {{baseUrl}}/policies/delinquent
+Accept: application/json
+
+###
+
+# ═══════════════════════════════════════════════════════════════════
+# 4. TRIGGER RETRY
+# ═══════════════════════════════════════════════════════════════════
+
+### Retry for POL-1001  (run AFTER a failed attempt above to see back-off)
+POST {{baseUrl}}/payments/retry/POL-1001
+
+###
+
+### Retry for POL-1002
+POST {{baseUrl}}/payments/retry/POL-1002
+
+###
+
+### Retry for POL-1003
+POST {{baseUrl}}/payments/retry/POL-1003
+
+###
+
+### Unknown policy → 404
+POST {{baseUrl}}/payments/retry/POL-9999
+
+###
